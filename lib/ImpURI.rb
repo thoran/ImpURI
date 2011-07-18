@@ -1,7 +1,7 @@
 # ImpURI
 
-# 2010.07.12
-# 0.4.1
+# 20110612
+# 0.4.2
 
 # Description: This is a non-validating parser for URI's and ssh/scp almost URI's.  
 
@@ -39,6 +39,13 @@
 # 0/1
 # 2. ~ ImpURI.userinfo, if either the username or the password had an '@' in it, it would fail to parse things correctly.  
 # 3. + require 'Array/all_but_last'
+# 1/2
+# 4. + ImpURI#request_uri for For compatability with Ruby's URI.  
+# 5. + ImpURI.request_uri for the instance method providing compatibility with Ruby's URI.  
+# 6. + ImpURI#parameter_string.  
+# 7. + ImpURI.parameter_string.  
+# 8. + ImpURI#parameters.  
+# 9. + ImpURI.parameters.  
 
 require '_meta/blankQ'
 require 'Array/all_but_first'
@@ -116,6 +123,25 @@ class ImpURI
     def path(uri)
       path = hostname_and_path(uri).split('/').all_but_first.join('/')
       path.blank? ? nil : '/' + path
+    end
+    
+    def request_uri(uri) # For the instance method providing compatibility to Ruby's URI.  
+      request_uri = path(uri).split('?').first
+      request_uri.blank? ? nil : request_uri
+    end
+    
+    def parameter_string(uri)
+      parameter_string = path(uri).split('?').last
+      parameter_string.blank? ? nil : parameter_string
+    end
+    
+    def parameters(uri)
+      h = {}
+      parameter_string(uri).split('&').each do |pairs|
+        a = pairs.split('=')
+        h[a[0]] = a[1]
+      end
+      h
     end
     
     def hostname_and_path(uri)
@@ -240,6 +266,18 @@ class ImpURI
   
   def path
     @path ||= self.class.path(@uri)
+  end
+  
+  def request_uri # For compatability with Ruby's URI.  
+    @request_uri ||= self.class.request_uri(@uri)
+  end
+  
+  def parameter_string
+    @parameter_string ||= self.class.parameter_string(@uri)
+  end
+  
+  def parameters
+    @parameters ||= self.class.parameters(@uri)
   end
   
   def scheme_with_separator
