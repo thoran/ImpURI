@@ -1,96 +1,88 @@
 # URI
 
 # 2010.05.08
-# 0.1.0
+# 0.2.0
 
-# Description: This is a non-validating parser for URI's.  
+# Description: This is a non-validating parser for URI's and ssh/scp almost URI's.  
 
 # Raison'd'etre: 
-# I wrote it because Ruby's standard URI class wouldn't parse the non-URI, but commonly used, ssh standard way of describing a login string... 
-# username:password@host:/path.  
+# 1. I wrote it because Ruby's standard URI class wouldn't parse the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  
+# 2. Ruby's standard URI class does too much.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
 
 # History: I've run into circumstances, such as when writing git-boot, where I can't use Ruby's standard library URI class to parse ssh/scp-style network resources.  Similarly, I have recently written a class called Secrets as a way of storing usernames and passwords, or credentials in an ssh/scp-style way.  Then I decided that I wanted to be able to store URI's as well, since a username and password is only used in the context of where those are to be used, but then had to consider contending with the same sort of mucking about as I did with git-boot.  This was begun as an exploratory exercise in programming a more satisfying and general solution inside the currently being used version of Secrets for its use there and elsewhere, and so was summarily ejected.  
 
 # Examples: 
-
-# URI should handle 
-# of what kinds of URI/ssh strings this will handle
-# hostname
-# user@hostname
-# user:password@hostname
-# scheme://hostname
-# scheme://hostname/path
-# scheme://hostname:/path
-# scheme://user@hostname
-# scheme://user:password@hostname
-# scheme://user@hostname/path
-# scheme://user@hostname:/path
-# scheme://user:password@hostname/path
-# scheme://user:password@hostname:/path
-
-# hostname:port
-# user@hostname:port
-# user:password@hostname:port
-# scheme://hostname:port
-# scheme://hostname:port/path
-# scheme://hostname:port:/path
-# scheme://user@hostname:port
-# scheme://user:password@hostname:port
-# scheme://user@hostname:port/path
-# scheme://user@hostname:port:/path
-# scheme://user:password@hostname:port/path
-# scheme://user:password@hostname:port:/path
+# uri = URI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource') OR uri = URI.new('scheme://user:pass@hostname.domain.name:20/path/to/resource')
+# => an object of class URI
+# uri.scheme OR uri.protocol
+# => 'scheme'
+# uri.userinfo OR uri.credentials OR uri.user_info OR uri.username_and_password
+# => 'user:pass'
+# uri.user OR uri.username
+# => 'user'
+# uri.pass OR uri.passwd OR uri.password
+# => 'pass
+# uri.host OR uri.hostname
+# => 'hostname.domain.name'
+# uri.port OR uri.portnumber OR uri.port_number
+# => '20'
+# uri.path
+# => '/path/to/resource'
 
 # Todo: 
 # 1. Handle port numbers.  Done as of 0.1.0.  
-# 2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  
+# 2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  Done as of 0.2.0.  
+# 3. Doesn't handle some of the funkier URI's like: ssh:// with keys in the userinfo section, mailto: (no ://, but merely :), and ldap://.  
 
-# Changes since 0.0: 
-# (It now handles port numbers and a few fixes.)
-# 1. ~ URI.protocol.  
-# 2. + URI.port_number
-# 3. + URI.hostname_and_port_number.  
-# 4. + URI.has_port_number?.  
-# 5. ~ URI.protocol_with_separator.  
-# 6. ~ URI.has_colon_path_separator.  
-# 7. + URI#credentials.  
-# 8. + URI#port_number.  
-# 9. + a bunch of alias_methods for new and existing methods.  
+# Changes since 0.1: 
+# (It now has a strict mode which disallows colon separated paths and requires that a scheme be given...)
+# 1. Swapped scheme for protocol as being the 'main' name for this 'thing'.  
+# 2. Swapped userinfo for credentials as being the 'main' name for this 'thing'.  
+# 3. Some additional alias_methods.  
+# 4. + class SchemeMissingError.  
+# 5. + class ColonPathSeparatorsNotAllowedError.  
+# 6. ~ URI.initialize.  
+# 7. ~ URI.parse.  
 
-require 'Module/alias_methods'
-require 'Array/all_but_first'
 require '_meta/blankQ'
+require 'Array/all_but_first'
+require 'Array/extract_optionsX'
+require 'Module/alias_methods'
 
 class URI
   
+  class SchemeMissingError < RuntimeError; end
+  class ColonPathSeparatorsNotAllowedError < RuntimeError; end
+  
   class << self
     
-    def parse(uri)
-      URI.new(uri)
+    attr_accessor :strict
+    
+    def parse(uri, *args)
+      URI.new(uri, *args)
     end
     
-    def protocol(uri)
-      if has_protocol?(uri)
+    def scheme(uri)
+      if has_scheme?(uri)
         uri.split('://').first
       else
         nil
       end
     end
-    alias_methods :scheme, :protocol
+    alias_methods :protocol, :scheme_name, :scheme
     
-    def credentials(uri)
-      if has_credentials?(uri)
-        all_but_protocol(uri).split('@').first
+    def userinfo(uri)
+      if has_userinfo?(uri)
+        all_but_scheme(uri).split('@').first
       else
         nil
       end
     end
-    alias_methods :username_and_password, :credentials
-    alias_methods :userinfo, :credentials
+    alias_methods :credentials, :username_and_password, :user_info, :userinfo
     
     def username(uri)
-      if has_credentials?(uri)
-        credentials(uri).split(':')[0]
+      if has_userinfo?(uri)
+        userinfo(uri).split(':')[0]
       else
         nil
       end
@@ -98,8 +90,8 @@ class URI
     alias_methods :user, :username
     
     def password(uri)
-      if has_credentials?(uri)
-        credentials(uri).split(':')[1]
+      if has_userinfo?(uri)
+        userinfo(uri).split(':')[1]
       else
         nil
       end
@@ -126,10 +118,10 @@ class URI
     end
     
     def hostname_and_path(uri)
-      if has_credentials?(uri)
+      if has_userinfo?(uri)
         uri.split('@').last
       else
-        all_but_protocol(uri)
+        all_but_scheme(uri)
       end
     end
     alias_methods :host_and_path
@@ -143,15 +135,15 @@ class URI
     end
     alias_methods :host_and_port, :host_and_portnumber, :host_and_port_number, :hostname_and_port, :hostname_and_portnumber, :hostname_and_port_number
     
-    def has_credentials?(uri)
+    def has_userinfo?(uri)
       uri.match(/@/) ? true : false
     end
-    alias_methods :has_username_and_password?, :has_credentials?
+    alias_methods :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
     
-    def has_protocol?(uri)
+    def has_scheme?(uri)
       uri.match(/^[a-z]*?:\/\//) ? true : false
     end
-    alias_methods :has_scheme?, :has_protocol?
+    alias_methods :has_protocol?, :has_scheme_name?, :has_scheme?
     
     def has_colon_path_separator?(uri)
       hostname_and_path(uri).match(/:\//) ? true : false
@@ -163,23 +155,24 @@ class URI
     end
     alias_methods :has_port?, :has_port_number?
     
-    def all_but_protocol(uri)
+    def all_but_scheme(uri)
       uri.split('://').last
     end
     
-    def all_but_credentials(uri)
-      if has_protocol?(uri)
-        "#{protocol_with_separator(uri)}#{hostname_and_path(uri)}"
+    def all_but_userinfo(uri)
+      if has_userinfo?(uri)
+        "#{scheme_with_separator(uri)}#{hostname_and_path(uri)}"
       else
         hostname_and_path(uri)
       end
     end
     
-    def protocol_with_separator(uri)
-      protocol(uri).blank? ? '' : "#{protocol(uri)}://"
+    def scheme_with_separator(uri)
+      scheme(uri).blank? ? '' : "#{scheme(uri)}://"
     end
+    alias_methods :protocol_with_separator, :scheme_with_separator
     
-    def username_and_password_with_separator(uri)
+    def userinfo_with_separator(uri)
       if username(uri).blank?
         ''
       elsif password(uri).blank?
@@ -188,21 +181,28 @@ class URI
         "#{username(uri)}:#{password(uri)}@"
       end
     end
+    alias_methods :credentials_with_separator, :username_and_password_with_separator, :user_info_with_separator, :userinfo_with_separator
     
   end # class << self
   
-  def initialize(uri = nil)
+  def initialize(uri, *args)
     @uri = uri
+    options = args.extract_options!
+    if options[:strict]
+      raise SchemeMissingError if !self.class.has_scheme?(uri)
+      raise ColonPathSeparatorsNotAllowedError if self.class.has_colon_path_separator?(uri)
+    end
   end
   
-  def protocol
-    @protocol ||= self.class.protocol(@uri)
+  def scheme
+    @scheme ||= self.class.scheme(@uri)
   end
-  alias_methods :scheme, :protocol
+  alias_methods :protocol, :scheme
   
-  def credentials
-    @credentials ||= self.class.credentials(@uri)
+  def userinfo
+    @userinfo ||= self.class.userinfo(@uri)
   end
+  alias_methods :credentials, :username_and_password, :user_info, :userinfo
   
   def username
     @username ||= self.class.username(@uri)
@@ -228,19 +228,21 @@ class URI
     @path ||= self.class.path(@uri)
   end
   
-  def protocol_with_separator
-    self.class.protocol_with_separator(@uri)
+  def scheme_with_separator
+    self.class.scheme_with_separator(@uri)
   end
+  alias_methods :protocol_with_separator, :scheme_with_separator
   
-  def username_and_password_with_separator
-    self.class.username_and_password_with_separator(@uri)
+  def userinfo_with_separator
+    self.class.userinfo_with_separator(@uri)
   end
+  alias_methods :credentials_with_separator, :username_and_password_with_separator, :user_info_with_separator, :userinfo_with_separator
   
   def to_s(use_colon = false)
     if use_colon
-      "#{protocol_with_separator}#{username_and_password_with_separator}#{hostname}:#{path}"
+      "#{scheme_with_separator}#{userinfo_with_separator}#{hostname}:#{path}"
     else
-      "#{protocol_with_separator}#{username_and_password_with_separator}#{hostname}#{path}"
+      "#{scheme_with_separator}#{userinfo_with_separator}#{hostname}#{path}"
     end
   end
   
