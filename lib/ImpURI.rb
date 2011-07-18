@@ -1,18 +1,18 @@
 # ImpURI
 
-# 20110612
-# 0.4.2
+# 20110713
+# 0.5.0
 
-# Description: This is a non-validating parser for URI's and ssh/scp almost URI's.  
+# Description: A cleaner and simpler URI and ssh/scp resource parser for Ruby.  
 
 # Raison'd'etre: 
-# 1. I wrote it because Ruby's standard URI class wouldn't parse the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  
-# 2. Ruby's standard URI class does too much.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
-
-# History: I've run into circumstances, such as when writing git-boot, where I can't use Ruby's standard library URI class to parse ssh/scp-style network resources.  Similarly, I have recently written a class called Secrets as a way of storing usernames and passwords, or credentials in an ssh/scp-style way.  Then I decided that I wanted to be able to store URI's as well, since a username and password is only used in the context of where those are to be used, but then had to consider contending with the same sort of mucking about as I did with git-boot.  This was begun as an exploratory exercise in programming a more satisfying and general solution inside the currently being used version of Secrets for its use there and elsewhere, and so was summarily ejected.  
+# 1. I wrote it because Ruby's standard URI library doesn't handle ssh/scp resource descriptors, which are the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  I wanted to be able to handle both.  
+# 2. Ruby's standard URI class does too much.  It is overblown and untidy.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
 
 # Examples: 
-# uri = URI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource') OR uri = URI.new('scheme://user:pass@hostname.domain.name:20/path/to/resource')
+# uri = ImpURI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
+# OR
+# uri = ImpURI.new('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
 # => an object of class URI
 # uri.scheme OR uri.protocol
 # => 'scheme'
@@ -28,24 +28,37 @@
 # => '20'
 # uri.path
 # => '/path/to/resource'
+# uri.parameter_string
+# => 'q=param'
+# uri.parameters
+# => {q => param}
 
 # Todo: 
 # 1. Handle port numbers.  Done as of 0.1.0.  
 # 2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  Done as of 0.2.0.  
 # 3. Doesn't handle some of the funkier URI's like: ssh:// with keys in the userinfo section, mailto: (no ://, but merely :), and ldap://.  
 
-# Changes since 0.3: 
-# 1. /URI/ImpURI/, since I was getting comflicts, which I am yet to resolve, with the standard URI class.  
-# 0/1
-# 2. ~ ImpURI.userinfo, if either the username or the password had an '@' in it, it would fail to parse things correctly.  
-# 3. + require 'Array/all_but_last'
-# 1/2
-# 4. + ImpURI#request_uri for For compatability with Ruby's URI.  
-# 5. + ImpURI.request_uri for the instance method providing compatibility with Ruby's URI.  
-# 6. + ImpURI#parameter_string.  
-# 7. + ImpURI.parameter_string.  
-# 8. + ImpURI#parameters.  
-# 9. + ImpURI.parameters.  
+# Changes since 0.5: 
+# (Copied in supporting methods.)
+# 1. + lib/_meta/blankQ.  
+# 2. + lib/Array/all_but_first.  
+# 3. + lib/Array/all_but_last.  
+# 4. + lib/Array/blankQ.  
+# 5. + lib/Array/extract_optionsX.  
+# 6. + lib/Array/firstX.  
+# 7. + lib/Array/lastX.  
+# 8. + lib/FalseClass/blankQ.  
+# 9. + lib/Hash/blankQ.  
+# 10. + lib/Module/alias_methods.  
+# 11. + lib/NilClass/blankQ.  
+# 12. + lib/Numeric/blankQ.  
+# 13. + lib/Object/blankQ.  
+# 14. + lib/String/blankQ.  
+# 15. + lib/TrueClass/blankQ.  
+# 16. ~ ImpURI.parameters(), so as it will not fail if ImpURI.parameter_string returns nil.  
+# 17. /self.class/ImpURI/, as it is probably marginally quicker and arguably clearer.  
+
+$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 
 require '_meta/blankQ'
 require 'Array/all_but_first'
@@ -136,12 +149,16 @@ class ImpURI
     end
     
     def parameters(uri)
-      h = {}
-      parameter_string(uri).split('&').each do |pairs|
-        a = pairs.split('=')
-        h[a[0]] = a[1]
+      if non_nil_parameter_string = parameter_string(uri)
+        h = {}
+        non_nil_parameter_string.split('&').each do |pairs|
+          a = pairs.split('=')
+          h[a[0]] = a[1]
+        end
+        h
+      else
+        nil
       end
-      h
     end
     
     def hostname_and_path(uri)
@@ -229,69 +246,69 @@ class ImpURI
     @uri = uri
     options = args.extract_options!
     if options[:strict]
-      raise SchemeMissingError if !self.class.has_scheme?(uri)
-      raise ColonPathSeparatorsNotAllowedError if self.class.has_colon_path_separator?(uri)
+      raise SchemeMissingError if !ImpURI.has_scheme?(uri)
+      raise ColonPathSeparatorsNotAllowedError if ImpURI.has_colon_path_separator?(uri)
     end
   end
   
   def scheme
-    @scheme ||= self.class.scheme(@uri)
+    @scheme ||= ImpURI.scheme(@uri)
   end
   alias_methods :protocol, :scheme
   
   def userinfo
-    @userinfo ||= self.class.userinfo(@uri)
+    @userinfo ||= ImpURI.userinfo(@uri)
   end
   alias_methods :credentials, :username_and_password, :user_info, :userinfo
   
   def username
-    @username ||= self.class.username(@uri)
+    @username ||= ImpURI.username(@uri)
   end
   alias_methods :user, :username
   
   def password
-    @password ||= self.class.password(@uri)
+    @password ||= ImpURI.password(@uri)
   end
   alias_methods :pass, :passwd, :password
   
   def hostname
-    @hostname ||= self.class.hostname(@uri)
+    @hostname ||= ImpURI.hostname(@uri)
   end
   alias_methods :host, :hostname
   
   def port_number
-    @port_number ||= self.class.port_number(@uri)
+    @port_number ||= ImpURI.port_number(@uri)
   end
   alias_methods :port, :portnumber, :port_number
   
   def path
-    @path ||= self.class.path(@uri)
+    @path ||= ImpURI.path(@uri)
   end
   
   def request_uri # For compatability with Ruby's URI.  
-    @request_uri ||= self.class.request_uri(@uri)
+    @request_uri ||= ImpURI.request_uri(@uri)
   end
   
   def parameter_string
-    @parameter_string ||= self.class.parameter_string(@uri)
+    @parameter_string ||= ImpURI.parameter_string(@uri)
   end
   
   def parameters
-    @parameters ||= self.class.parameters(@uri)
+    @parameters ||= ImpURI.parameters(@uri)
   end
   
   def scheme_with_separator
-    self.class.scheme_with_separator(@uri)
+    ImpURI.scheme_with_separator(@uri)
   end
   alias_methods :protocol_with_separator, :scheme_with_separator
   
   def userinfo_with_separator
-    self.class.userinfo_with_separator(@uri)
+    ImpURI.userinfo_with_separator(@uri)
   end
   alias_methods :credentials_with_separator, :username_and_password_with_separator, :user_info_with_separator, :userinfo_with_separator
   
   def hostname_optionally_with_port_number
-    self.class.hostname_optionally_with_port_number(@uri)
+    ImpURI.hostname_optionally_with_port_number(@uri)
   end
   alias_methods :hostname_optinally_with_portnumber, :hostname_optionally_with_port_number
   

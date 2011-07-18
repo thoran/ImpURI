@@ -1,0 +1,6 @@
+ImpURI --- A cleaner and simpler URI and ssh/scp resource parser for Ruby
+
+This is a hand-written non-validating parser for URI's and ssh/scp almost URI resource descriptors.  I wrote it for two reasons... 
+
+# 1. I wrote it because Ruby's standard URI library doesn't handle ssh/scp resource descriptors, which are the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  I wanted to be able to handle both.  
+# 2. Ruby's standard URI class does too much.  It is overblown and untidy.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
