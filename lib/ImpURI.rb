@@ -1,7 +1,7 @@
 # ImpURI
 
-# 2010.05.10
-# 0.4.0
+# 2010.07.12
+# 0.4.1
 
 # Description: This is a non-validating parser for URI's and ssh/scp almost URI's.  
 
@@ -36,9 +36,13 @@
 
 # Changes since 0.3: 
 # 1. /URI/ImpURI/, since I was getting comflicts, which I am yet to resolve, with the standard URI class.  
+# 0/1
+# 2. ~ ImpURI.userinfo, if either the username or the password had an '@' in it, it would fail to parse things correctly.  
+# 3. + require 'Array/all_but_last'
 
 require '_meta/blankQ'
 require 'Array/all_but_first'
+require 'Array/all_but_last'
 require 'Array/extract_optionsX'
 require 'Module/alias_methods'
 
@@ -66,7 +70,11 @@ class ImpURI
     
     def userinfo(uri)
       if has_userinfo?(uri)
-        all_but_scheme(uri).split('@').first
+        if all_but_scheme(uri).split('@').size > 1
+          all_but_scheme(uri).split('@').all_but_last.join('@')
+        else
+          all_but_scheme(uri).split('@').first
+        end
       else
         nil
       end
