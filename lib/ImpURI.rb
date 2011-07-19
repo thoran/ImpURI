@@ -1,44 +1,16 @@
 # ImpURI
 
-# 20110713
-# 0.5.0
+# 20110719
+# 0.5.1
 
 # Description: A cleaner and simpler URI and ssh/scp resource parser for Ruby.  
-
-# Raison'd'etre: 
-# 1. I wrote it because Ruby's standard URI library doesn't handle ssh/scp resource descriptors, which are the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  I wanted to be able to handle both.  
-# 2. Ruby's standard URI class does too much.  It is overblown and untidy.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
-
-# Examples: 
-# uri = ImpURI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
-# OR
-# uri = ImpURI.new('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
-# => an object of class URI
-# uri.scheme OR uri.protocol
-# => 'scheme'
-# uri.userinfo OR uri.credentials OR uri.user_info OR uri.username_and_password
-# => 'user:pass'
-# uri.user OR uri.username
-# => 'user'
-# uri.pass OR uri.passwd OR uri.password
-# => 'pass
-# uri.host OR uri.hostname
-# => 'hostname.domain.name'
-# uri.port OR uri.portnumber OR uri.port_number
-# => '20'
-# uri.path
-# => '/path/to/resource'
-# uri.parameter_string
-# => 'q=param'
-# uri.parameters
-# => {q => param}
 
 # Todo: 
 # 1. Handle port numbers.  Done as of 0.1.0.  
 # 2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  Done as of 0.2.0.  
 # 3. Doesn't handle some of the funkier URI's like: ssh:// with keys in the userinfo section, mailto: (no ://, but merely :), and ldap://.  
 
-# Changes since 0.5: 
+# Changes since 0.4: 
 # (Copied in supporting methods.)
 # 1. + lib/_meta/blankQ.  
 # 2. + lib/Array/all_but_first.  
@@ -57,6 +29,14 @@
 # 15. + lib/TrueClass/blankQ.  
 # 16. ~ ImpURI.parameters(), so as it will not fail if ImpURI.parameter_string returns nil.  
 # 17. /self.class/ImpURI/, as it is probably marginally quicker and arguably clearer.  
+# 0/1
+# 18. /Changes since 0.5/Changes since 0.4/.  
+# 19. ~ ImpURI#initialize(), so as it assigns @uri only after checking for strict adherence first.  
+# 20. ~ README---minor edit.  
+# 21. /:hostname_optinally_with_portnumber/:hostname_optionally_with_portnumber/.  
+# 22. "Raison'd'etre" moved to README.  
+# 23. "Examples" moved to README.  
+# 24. ~ ImpURI.hostname_optionally_with_port_number()---a copy paste error from userinfo_with_separator().  
 
 $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 
@@ -235,7 +215,7 @@ class ImpURI
       if port_number(uri).blank?
         "#{hostname(uri)}"
       else
-        "#{username(uri)}:#{port_number(uri)}@"
+        "#{hostname(uri)}:#{port_number(uri)}"
       end
     end
     alias_methods :hostname_optionally_with_portnumber, :hostname_optionally_with_port_number
@@ -243,12 +223,12 @@ class ImpURI
   end # class << self
   
   def initialize(uri, *args)
-    @uri = uri
     options = args.extract_options!
     if options[:strict]
       raise SchemeMissingError if !ImpURI.has_scheme?(uri)
       raise ColonPathSeparatorsNotAllowedError if ImpURI.has_colon_path_separator?(uri)
     end
+    @uri = uri
   end
   
   def scheme
@@ -310,7 +290,7 @@ class ImpURI
   def hostname_optionally_with_port_number
     ImpURI.hostname_optionally_with_port_number(@uri)
   end
-  alias_methods :hostname_optinally_with_portnumber, :hostname_optionally_with_port_number
+  alias_methods :hostname_optionally_with_portnumber, :hostname_optionally_with_port_number
   
   def to_s(use_colon_path_separator = false)
     if use_colon_path_separator
