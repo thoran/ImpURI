@@ -1,6 +1,50 @@
-ImpURI --- A cleaner and simpler URI and ssh/scp resource parser for Ruby
+ImpURI
 
-This is a hand-written non-validating parser for URI's and ssh/scp almost URI resource descriptors.  I wrote it for two reasons... 
+Description
+===========
 
-# 1. I wrote it because Ruby's standard URI library doesn't handle ssh/scp resource descriptors, which are the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  I wanted to be able to handle both.  
-# 2. Ruby's standard URI class does too much.  It is overblown and untidy.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
+This is a hand-written non-validating parser for URI's and ssh/scp almost URI resource descriptors which is intended to be cleaner and simpler than Ruby's standard URI.  
+
+
+Raison d'etre
+=============
+
+I wrote for two reasons... 
+
+1. Ruby's standard URI library doesn't handle ssh/scp resource descriptors, which are the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:/path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  I wanted to be able to handle both.  
+
+2. Ruby's standard URI class does too much.  It is overblown and untidy.  I just want it to break the strings down and that's it.  I don't want any scheme interpolation from the port number, nor from the host name, or any other 'smarts'.  
+
+
+Examples
+========
+
+uri = ImpURI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
+=> an object of class ImpURI
+
+uri.scheme OR uri.protocol
+=> 'scheme'
+
+uri.userinfo OR uri.credentials OR uri.user_info OR uri.username_and_password
+=> 'user:pass'
+
+uri.user OR uri.username
+=> 'user'
+
+uri.pass OR uri.passwd OR uri.password
+=> 'pass'
+
+uri.host OR uri.hostname
+=> 'hostname.domain.name'
+
+uri.port OR uri.portnumber OR uri.port_number
+=> '20'
+
+uri.path
+=> '/path/to/resource'
+
+uri.parameter_string
+=> 'q=param'
+
+uri.parameters
+=> {q => param}
