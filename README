@@ -19,32 +19,32 @@ I wrote for two reasons...
 Examples
 ========
 
-uri = ImpURI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
+impuri = ImpURI.parse('scheme://user:pass@hostname.domain.name:20/path/to/resource?q=param')
 => an object of class ImpURI
 
-uri.scheme OR uri.protocol
+impuri.scheme OR impuri.protocol
 => 'scheme'
 
-uri.userinfo OR uri.credentials OR uri.user_info OR uri.username_and_password
+impuri.userinfo OR impuri.credentials OR impuri.user_info OR impuri.username_and_password
 => 'user:pass'
 
-uri.user OR uri.username
+impuri.user OR impuri.username
 => 'user'
 
-uri.pass OR uri.passwd OR uri.password
+impuri.pass OR impuri.passwd OR impuri.password
 => 'pass'
 
-uri.host OR uri.hostname
+impuri.host OR impuri.hostname
 => 'hostname.domain.name'
 
-uri.port OR uri.portnumber OR uri.port_number
+impuri.port OR impuri.portnumber OR impuri.port_number
 => '20'
 
-uri.path
+impuri.path
 => '/path/to/resource'
 
-uri.parameter_string
+impuri.parameter_string
 => 'q=param'
 
-uri.parameters
-=> {q => param}
+impuri.parameters
+=> {'q' => 'param'}
