@@ -1,56 +1,5 @@
+# ImpURI.rbd/ImpURI.rb
 # ImpURI
-
-# 20110918, 20140509
-# 0.6.2
-
-# Description: A cleaner and simpler URI and ssh/scp resource parser for Ruby.  
-
-# Todo: 
-# 1. Handle port numbers.  Done as of 0.1.0.  
-# 2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  Done as of 0.2.0.  
-# 3. Doesn't handle some of the funkier URI's like: ssh:// with keys in the userinfo section, mailto: (no ://, but merely :), and ldap://.  
-# 4. Consider encoding everything in the URI before breaking down the strings, so as to avoid the kind of complexity introduced in ImpURI.has_userinfo?().  
-
-# Changes since 0.5: 
-# 1. /alias_methods :host_and_path/alias_methods :host_and_path, :hostname_and_path/
-# 2. Swapped implementation of ImpURI.request_uri() for ImpURI.path(), since ImpURI.path() was giving the response that ImpURI.request_uri() should have been.  
-# 3. ~ ImpURI.path(), so as it removes any request parameters.  
-# 4. + ImpURI.has_parameters?().  
-# 5. + alias_methods :has_get_parameters?, :has_parameters.  
-# 6. + alias_methods :query_string, :parameter_string.  
-# 7. + alias_methods :query, :parameters.  
-# 8. + ImpURI.has_semicolon_parameter_separator?
-# 9. + alias_methods :has_semicolon_query_separator?, :has_semicolon_parameter_separator?
-# 10. + ImpURIhas_ampersand_parameter_separator?
-# 11. + alias_methods :has_ampersand_query_separator?, :has_ampersand_parameter_separator?
-# 12. + ImpURI.parameter_separator.  
-# 13. + alias_methods :query_separator, :parameter_separator
-# 14. ~ ImpURI.parameters, so as handles ampersand and semicolon parameter separators.  
-# 15. ~ ImpURI.parameter_string, so as it checks for parameters first before.  
-# 16. + ImpURI#has_userinfo?.  
-# 17. + alias_methods :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?.  
-# 18. + ImpURI#has_scheme?.  
-# 19. + alias_methods :has_protocol?, :has_scheme_name?, :has_scheme?.  
-# 20. + ImpURI#has_colon_path_separator?.  
-# 21. + alias_methods :uses_colon_path_separator?, :has_colon_path_separator?.  
-# 22. + ImpURI#has_port_number?.  
-# 23. + alias_methods :has_port?, :has_port_number?.  
-# 24. + ImpURI#has_parameters?.  
-# 25. + alias_methods :has_get_parameters?, :has_parameters?.  
-# 26. + ImpURI#has_semicolon_parameter_separator?.  
-# 27. + alias_methods :has_semicolon_query_separator?, :has_semicolon_parameter_separator?.  
-# 28. + ImpURI#has_ampersand_parameter_separator?.  
-# 29. + alias_methods :has_ampersand_query_separator?, :has_ampersand_parameter_separator?.  
-# 30. ~ /alias_methods :protocol, :scheme/alias_methods :protocol, :scheme_name, :scheme/.  
-# 31. ~ README with some very small edits.  
-# 0/1
-# 32. ~ ImpURI.has_userinfo?(), so as it may have '@' within the credential strings.  
-# 33. ~ ImpURI.parameters(), so as it is a little tighter and faster by swapping out each() for inject().  
-# 1/2
-# 34. ~ lib/ImpURI.rb, moved everything to lib/ImpURI.rbd/ImpURI.rb, and added a require line pointing to where everything was moved.
-# 35. ~ ImpURI.has_user_info?(), so as it can cope better with ssh-style strings.
-# 36. ~ ImpURI.has_colon_path_separator?(), so as it can handle ssh-style strings with a ~ as the first character after the :.
-# 37. ~ ImpURI.is_ssh?(), but commented out, presumably because it wasn't used.
 
 $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 
@@ -61,18 +10,18 @@ require 'Array/extract_optionsX'
 require 'Module/alias_methods'
 
 class ImpURI
-  
+
   class SchemeMissingError < RuntimeError; end
   class ColonPathSeparatorsNotAllowedError < RuntimeError; end
-  
+
   class << self
-    
+
     attr_accessor :strict
-    
+
     def parse(uri, *args)
       ImpURI.new(uri, *args)
     end
-    
+
     def scheme(uri)
       if has_scheme?(uri)
         uri.split('://').first
@@ -81,7 +30,7 @@ class ImpURI
       end
     end
     alias_methods :protocol, :scheme_name, :scheme
-    
+
     def userinfo(uri)
       if has_userinfo?(uri)
         if all_but_scheme(uri).split('@').size > 1
@@ -89,21 +38,25 @@ class ImpURI
         else
           all_but_scheme(uri).split('@').first
         end
+      elsif has_username?(uri)
+        uri.split('@').first
       else
         nil
       end
     end
     alias_methods :credentials, :username_and_password, :user_info, :userinfo
-    
+
     def username(uri)
       if has_userinfo?(uri)
         userinfo(uri).split(':')[0]
+      elsif has_username?(uri)
+        uri.split('@').first
       else
         nil
       end
     end
     alias_methods :user, :username
-    
+
     def password(uri)
       if has_userinfo?(uri)
         userinfo(uri).split(':')[1]
@@ -112,12 +65,12 @@ class ImpURI
       end
     end
     alias_methods :pass, :passwd, :password
-    
+
     def hostname(uri)
       hostname_and_port_number(uri).split(':').first
     end
     alias_methods :host, :hostname
-    
+
     def port_number(uri)
       if has_port_number?(uri)
         hostname_and_port_number(uri).split(':').last
@@ -126,12 +79,16 @@ class ImpURI
       end
     end
     alias_methods :port, :portnumber, :port_number
-    
-    def request_uri(uri) # For the instance method providing compatibility to Ruby's URI.  
-      path = hostname_and_path(uri).split('/').all_but_first.join('/')
-      path.blank? ? nil : '/' + path
+
+    def request_uri(uri) # For the instance method providing compatibility to Ruby's URI.
+      if has_colon_path_separator?(uri)
+        path = hostname_and_path(uri).split(':').all_but_first.join('/')
+      else
+        path = hostname_and_path(uri).split('/').all_but_first.join('/')
+        path.blank? ? nil : '/' + path
+      end
     end
-    
+
     def path(uri)
       if non_nil_request_uri = request_uri(uri)
         request_uri = non_nil_request_uri.split('?').first
@@ -140,13 +97,13 @@ class ImpURI
         nil
       end
     end
-    
+
     def parameter_string(uri)
       parameter_string = has_parameters?(uri) ? request_uri(uri).split('?').last : nil
       parameter_string.blank? ? nil : parameter_string
     end
     alias_methods :query_string, :parameter_string
-    
+
     def parameters(uri)
       if non_nil_parameter_string = parameter_string(uri)
         parameter_parts = (
@@ -166,9 +123,9 @@ class ImpURI
       end
     end
     alias_methods :query, :parameters
-    
+
     def hostname_and_path(uri)
-      if has_userinfo?(uri)
+      if has_userinfo?(uri) || has_username?(uri)
         if all_but_scheme(uri).split('@').size > 1
           all_but_scheme(uri).split('@').all_but_first.join('@')
         else
@@ -179,7 +136,7 @@ class ImpURI
       end
     end
     alias_methods :host_and_path, :hostname_and_path
-    
+
     def hostname_and_port_number(uri)
       if has_colon_path_separator?(uri)
         hostname_and_path(uri).split(':').all_but_last.join(':')
@@ -188,11 +145,9 @@ class ImpURI
       end
     end
     alias_methods :host_and_port, :host_and_portnumber, :host_and_port_number, :hostname_and_port, :hostname_and_portnumber, :hostname_and_port_number
-    
+
     def has_userinfo?(uri)
-      if !has_scheme?(uri)
-        uri.split('/').all_but_last.join('/').match(/@/) ? true : false
-      else
+      if has_scheme?(uri)
         partial_decomposition = uri.split('//').all_but_first.join.split('/')
         if partial_decomposition.size > 1
           next_decomposition = partial_decomposition.all_but_last
@@ -200,40 +155,50 @@ class ImpURI
           next_decomposition = [partial_decomposition.first]
         end
         next_decomposition.join('/').match(/@/) ? true : false
+      else
+        uri.match(/.+:.+@/) ? true : false
       end
     end
-    alias_methods :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
-    
+    alias_methods :credentials?, :username_and_password?, :user_info?, :userinfo?, :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
+
+    def has_username?(uri)
+      if has_scheme?(uri)
+        all_but_scheme(uri).split('@').first ? true : false
+      else
+        uri.split('@').first ? true : false        
+      end
+    end
+
     def has_scheme?(uri)
       uri.match(/^[a-z]*?:\/\//) ? true : false
     end
-    alias_methods :has_protocol?, :has_scheme_name?, :has_scheme?
-    
+    alias_methods :protocol?, :scheme_name?, :scheme?, :has_protocol?, :has_scheme_name?, :has_scheme?
+
     def has_colon_path_separator?(uri)
-      hostname_and_path(uri).match(/:\//) || hostname_and_path(uri).match(/:~/) ? true : false
+      hostname_and_path(uri).match(/:/) && !has_port_number?(uri) ? true : false
     end
-    alias_methods :uses_colon_path_separator?, :has_colon_path_separator?
-    
+    alias_methods :colon_path_separator?, :uses_colon_path_separator?, :has_colon_path_separator?
+
     def has_port_number?(uri)
-      hostname_and_path(uri).match(/(:\d+\/)|(:\d+$)/) ? true : false
+      hostname_and_path(uri).match(/:\d+/) ? true : false
     end
-    alias_methods :has_port?, :has_port_number?
-    
+    alias_methods :port?, :portnumber?, :port_number?, :has_port?, :has_portnumber?, :has_port_number?
+
     def has_parameters?(uri)
       uri.match(/\?/) ? true : false
     end
     alias_methods :has_get_parameters?, :has_parameters?
-    
+
     def has_semicolon_parameter_separator?(uri)
       uri.match(/;/) ? true : false
     end
     alias_methods :has_semicolon_query_separator?, :has_semicolon_parameter_separator?
-    
+
     def has_ampersand_parameter_separator?(uri)
       uri.match(/&/) ? true : false
     end
     alias_methods :has_ampersand_query_separator?, :has_ampersand_parameter_separator?
-    
+
     def parameter_separator(uri)
       if has_ampersand_parameter_separator?(uri)
         '&'
@@ -244,11 +209,11 @@ class ImpURI
       end
     end
     alias_methods :query_separator, :parameter_separator
-    
+
     def all_but_scheme(uri)
       uri.split('://').last
     end
-    
+
     def all_but_userinfo(uri)
       if has_userinfo?(uri)
         "#{scheme_with_separator(uri)}#{hostname_and_path(uri)}"
@@ -256,7 +221,7 @@ class ImpURI
         hostname_and_path(uri)
       end
     end
-    
+
     def scheme_with_separator(uri)
       if scheme(uri).blank?
         ''
@@ -265,7 +230,7 @@ class ImpURI
       end
     end
     alias_methods :protocol_with_separator, :scheme_with_separator
-    
+
     def userinfo_with_separator(uri)
       if username(uri).blank?
         ''
@@ -276,7 +241,7 @@ class ImpURI
       end
     end
     alias_methods :credentials_with_separator, :username_and_password_with_separator, :user_info_with_separator, :userinfo_with_separator
-    
+
     def hostname_optionally_with_port_number(uri)
       if port_number(uri).blank?
         "#{hostname(uri)}"
@@ -285,13 +250,13 @@ class ImpURI
       end
     end
     alias_methods :hostname_optionally_with_portnumber, :hostname_optionally_with_port_number
-    
-    # def is_ssh?(uri)
-    #   !has_scheme?(uri) && has_colon_path_separator?(uri) ? true : false
-    # end
-    
+
+    def is_ssh?(uri)
+      !has_scheme?(uri) && has_colon_path_separator?(uri) ? true : false
+    end
+
   end # class << self
-  
+
   def initialize(uri, *args)
     options = args.extract_options!
     if options[:strict]
@@ -300,80 +265,80 @@ class ImpURI
     end
     @uri = uri
   end
-  
+
   def scheme
     @scheme ||= ImpURI.scheme(@uri)
   end
   alias_methods :protocol, :scheme_name, :scheme
-  
+
   def userinfo
     @userinfo ||= ImpURI.userinfo(@uri)
   end
   alias_methods :credentials, :username_and_password, :user_info, :userinfo
-  
+
   def username
     @username ||= ImpURI.username(@uri)
   end
   alias_methods :user, :username
-  
+
   def password
     @password ||= ImpURI.password(@uri)
   end
   alias_methods :pass, :passwd, :password
-  
+
   def hostname
     @hostname ||= ImpURI.hostname(@uri)
   end
   alias_methods :host, :hostname
-  
+
   def hostname_and_path
     @hostname_and_path ||= ImpURI.hostname_and_path(@uri)
   end
-  
+
   def hostname_and_port_number
     @hostname_and_port_number ||= ImpURI.hostname_and_port_number(@uri)
   end
-  
+
   def all_but_scheme
     @all_but_scheme ||= ImpURI.all_but_scheme(@uri)
   end
-  
+
   def port_number
     @port_number ||= ImpURI.port_number(@uri)
   end
   alias_methods :port, :portnumber, :port_number
-  
+
   def path
     @path ||= ImpURI.path(@uri)
   end
-  
-  def request_uri # For compatability with Ruby's URI.  
+
+  def request_uri # For compatability with Ruby's URI.
     @request_uri ||= ImpURI.request_uri(@uri)
   end
-  
+
   def parameter_string
     @parameter_string ||= ImpURI.parameter_string(@uri)
   end
-  
+
   def parameters
     @parameters ||= ImpURI.parameters(@uri)
   end
-  
+
   def scheme_with_separator
     ImpURI.scheme_with_separator(@uri)
   end
   alias_methods :protocol_with_separator, :scheme_with_separator
-  
+
   def userinfo_with_separator
     ImpURI.userinfo_with_separator(@uri)
   end
   alias_methods :credentials_with_separator, :username_and_password_with_separator, :user_info_with_separator, :userinfo_with_separator
-  
+
   def hostname_optionally_with_port_number
     ImpURI.hostname_optionally_with_port_number(@uri)
   end
   alias_methods :hostname_optionally_with_portnumber, :hostname_optionally_with_port_number
-  
+
   def to_s(use_colon_path_separator = false)
     if use_colon_path_separator
       "#{scheme_with_separator}#{userinfo_with_separator}#{hostname_optionally_with_port_number}:#{path}"
@@ -381,44 +346,48 @@ class ImpURI
       "#{scheme_with_separator}#{userinfo_with_separator}#{hostname_optionally_with_port_number}#{path}"
     end
   end
-  
+
   def to_h
     {:scheme => scheme, :username => username, :password => password, :hostname => hostname, :port_number => port_number, :path => path}
   end
-  
+
   def has_userinfo?
     ImpURI.has_userinfo?(@uri)
   end
-  alias_methods :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
-  
+  alias_methods :credentials?, :username_and_password?, :user_info?, :userinfo?, :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
+
   def has_scheme?
     ImpURI.has_scheme?(@uri)
   end
-  alias_methods :has_protocol?, :has_scheme_name?, :has_scheme?
-  
+  alias_methods :protocol?, :scheme_name?, :scheme?, :has_protocol?, :has_scheme_name?, :has_scheme?
+
   def has_colon_path_separator?
     ImpURI.has_colon_path_separator?(@uri)
   end
-  alias_methods :uses_colon_path_separator?, :has_colon_path_separator?
-  
+  alias_methods :colon_path_separator?, :uses_colon_path_separator?, :has_colon_path_separator?
+
   def has_port_number?
     ImpURI.has_port_number?(@uri)
   end
-  alias_methods :has_port?, :has_port_number?
-  
+  alias_methods :port?, :portnumber?, :port_number?, :has_port?, :has_portnumber?, :has_port_number?
+
   def has_parameters?
     ImpURI.has_parameters?(@uri)
   end
   alias_methods :has_get_parameters?, :has_parameters?
-  
+
   def has_semicolon_parameter_separator?
     ImpURI.has_semicolon_parameter_separator?(@uri)
   end
   alias_methods :has_semicolon_query_separator?, :has_semicolon_parameter_separator?
-  
+
   def has_ampersand_parameter_separator?
     ImpURI.has_ampersand_parameter_separator?(@uri)
   end
   alias_methods :has_ampersand_query_separator?, :has_ampersand_parameter_separator?
-  
+
+  def is_ssh?
+    ImpURI.is_ssh?(@uri)
+  end
+
 end
