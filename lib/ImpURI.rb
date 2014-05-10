@@ -178,7 +178,7 @@ class ImpURI
     alias_methods :host_and_port, :host_and_portnumber, :host_and_port_number, :hostname_and_port, :hostname_and_portnumber, :hostname_and_port_number
     
     def has_userinfo?(uri)
-      uri.match(/@/) ? true : false
+      uri.split('/').all_but_last.join('/').match(/@/) ? true : false
     end
     alias_methods :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
     
