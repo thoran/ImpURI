@@ -1,7 +1,7 @@
 # ImpURI
 
-# 20110725
-# 0.6.0
+# 20110725, 0903
+# 0.6.1
 
 # Description: A cleaner and simpler URI and ssh/scp resource parser for Ruby.  
 
@@ -9,6 +9,7 @@
 # 1. Handle port numbers.  Done as of 0.1.0.  
 # 2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  Done as of 0.2.0.  
 # 3. Doesn't handle some of the funkier URI's like: ssh:// with keys in the userinfo section, mailto: (no ://, but merely :), and ldap://.  
+# 4. Consider encoding everything in the URI before breaking down the strings, so as to avoid the kind of complexity introduced in ImpURI.has_userinfo?().  
 
 # Changes since 0.5: 
 # 1. /alias_methods :host_and_path/alias_methods :host_and_path, :hostname_and_path/
@@ -42,6 +43,9 @@
 # 29. + alias_methods :has_ampersand_query_separator?, :has_ampersand_parameter_separator?.  
 # 30. ~ /alias_methods :protocol, :scheme/alias_methods :protocol, :scheme_name, :scheme/.  
 # 31. ~ README with some very small edits.  
+# 0/1
+# 32. ~ ImpURI.has_userinfo?(), so as it may have '@' within the credential strings.  
+# 33. ~ ImpURI.parameters(), so as it is a little tighter and faster by swapping out each() for inject().  
 
 $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 
@@ -140,7 +144,6 @@ class ImpURI
     
     def parameters(uri)
       if non_nil_parameter_string = parameter_string(uri)
-        h = {}
         parameter_parts = (
           case parameter_separator(uri)
           when '&'; non_nil_parameter_string.split('&')
@@ -148,11 +151,11 @@ class ImpURI
           else [non_nil_parameter_string]
           end
         )
-        parameter_parts.each do |pairs|
+        parameter_parts.inject({}) do |h,pairs|
           a = pairs.split('=')
           h[a[0]] = a[1]
+          h
         end
-        h
       else
         nil
       end
@@ -161,7 +164,11 @@ class ImpURI
     
     def hostname_and_path(uri)
       if has_userinfo?(uri)
-        uri.split('@').last
+        if all_but_scheme(uri).split('@').size > 1
+          all_but_scheme(uri).split('@').all_but_first.join('@')
+        else
+          all_but_scheme(uri).split('@').first
+        end
       else
         all_but_scheme(uri)
       end
@@ -178,7 +185,13 @@ class ImpURI
     alias_methods :host_and_port, :host_and_portnumber, :host_and_port_number, :hostname_and_port, :hostname_and_portnumber, :hostname_and_port_number
     
     def has_userinfo?(uri)
-      uri.split('/').all_but_last.join('/').match(/@/) ? true : false
+      partial_decomposition = uri.split('//').all_but_first.join.split('/')
+      if partial_decomposition.size > 1
+        next_decomposition = partial_decomposition.all_but_last
+      else
+        next_decomposition = [partial_decomposition.first]
+      end
+      next_decomposition.join('/').match(/@/) ? true : false
     end
     alias_methods :has_credentials?, :has_username_and_password?, :has_user_info?, :has_userinfo?
     
@@ -299,6 +312,18 @@ class ImpURI
     @hostname ||= ImpURI.hostname(@uri)
   end
   alias_methods :host, :hostname
+  
+  def hostname_and_path
+    @hostname_and_path ||= ImpURI.hostname_and_path(@uri)
+  end
+  
+  def hostname_and_port_number
+    @hostname_and_port_number ||= ImpURI.hostname_and_port_number(@uri)
+  end
+  
+  def all_but_scheme
+    @all_but_scheme ||= ImpURI.all_but_scheme(@uri)
+  end
   
   def port_number
     @port_number ||= ImpURI.port_number(@uri)
