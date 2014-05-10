@@ -18,7 +18,7 @@ require 'ImpURI'
 require 'minitest/autorun'
 
 describe ImpURI do
-
+  
   describe 'ImpURI class methods' do
     
     describe 'parse()' do
@@ -423,6 +423,58 @@ describe ImpURI do
       end
     end # describe 'an http URI with two GET query parameters'
     
+    describe 'an http URI with two GET query parameters separated by a semicolon' do
+      before do
+        @http_uri = 'http://example.com/?q=param1;r=param2'
+      end
+      
+      it 'should parse out the scheme' do
+        ImpURI.scheme(@http_uri).must_equal 'http'
+        ImpURI.protocol(@http_uri).must_equal 'http'
+        ImpURI.scheme_name(@http_uri).must_equal 'http'
+      end
+      
+      it 'should parse out the domain name' do
+        ImpURI.hostname(@http_uri).must_equal 'example.com'
+        ImpURI.host(@http_uri).must_equal 'example.com'
+      end
+      
+      it 'should parse out the paramter string' do
+        ImpURI.parameter_string(@http_uri).must_equal 'q=param1;r=param2'
+      end
+      
+      it 'should parse out the parameter as a hash' do
+        ImpURI.parameters(@http_uri).must_equal({'q' => 'param1', 'r' => 'param2'})
+      end
+      
+      it 'should return false for has_userinfo?()' do
+        ImpURI.has_userinfo?(@http_uri).must_equal false
+        ImpURI.has_credentials?(@http_uri).must_equal false
+        ImpURI.has_username_and_password?(@http_uri).must_equal false
+        ImpURI.has_user_info?(@http_uri).must_equal false
+      end
+      
+      it 'should return true for has_scheme?()' do
+        ImpURI.has_scheme?(@http_uri).must_equal true
+        ImpURI.has_protocol?(@http_uri).must_equal true
+        ImpURI.has_scheme_name?(@http_uri).must_equal true
+      end
+      
+      it 'should return false for has_colon_path_separator?()' do
+        ImpURI.has_colon_path_separator?(@http_uri).must_equal false
+        ImpURI.uses_colon_path_separator?(@http_uri).must_equal false
+      end
+      
+      it 'should return false for has_port_number?()' do
+        ImpURI.has_port_number?(@http_uri).must_equal false
+        ImpURI.has_port?(@http_uri).must_equal false
+      end
+      
+      it 'should return the request URI' do
+        ImpURI.request_uri(@http_uri).must_equal '/?q=param1;r=param2'
+      end
+    end # describe 'an http URI with two GET query parameters separated by a semicolon'
+    
     describe 'an http URI with the lot' do
       before do
         @http_uri = 'http://user:pass@example.com:8080/path/to/resource?q=param1&r=param2'
@@ -502,6 +554,86 @@ describe ImpURI do
         ImpURI.request_uri(@http_uri).must_equal '/path/to/resource?q=param1&r=param2'
       end
     end # describe 'an http URI with the lot'
+    
+    describe 'an http URI with the lot and a semicolon path separator' do
+      before do
+        @http_uri = 'http://user:pass@example.com:8080/path/to/resource?q=param1;r=param2'
+      end
+      
+      it 'should parse out the scheme' do
+        ImpURI.scheme(@http_uri).must_equal 'http'
+        ImpURI.protocol(@http_uri).must_equal 'http'
+        ImpURI.scheme_name(@http_uri).must_equal 'http'
+      end
+      
+      it 'should parse out the domain name' do
+        ImpURI.hostname(@http_uri).must_equal 'example.com'
+        ImpURI.host(@http_uri).must_equal 'example.com'
+      end
+      
+      it 'should parse out the path' do
+        ImpURI.path(@http_uri).must_equal '/path/to/resource'
+      end
+      
+      it 'should parse out the port number' do
+        ImpURI.port(@http_uri).must_equal '8080'
+        ImpURI.port_number(@http_uri).must_equal '8080'
+        ImpURI.port_number(@http_uri).must_equal '8080'
+      end
+      
+      it 'should parse out the username' do
+        ImpURI.username(@http_uri).must_equal 'user'
+        ImpURI.user(@http_uri).must_equal 'user'
+      end
+      
+      it 'should parse out the password' do
+        ImpURI.password(@http_uri).must_equal 'pass'
+        ImpURI.pass(@http_uri).must_equal 'pass'
+        ImpURI.passwd(@http_uri).must_equal 'pass'
+      end
+      
+      it 'should return the userinfo string' do
+        ImpURI.userinfo(@http_uri).must_equal 'user:pass'
+        ImpURI.credentials(@http_uri).must_equal 'user:pass'
+        ImpURI.username_and_password(@http_uri).must_equal 'user:pass'
+        ImpURI.user_info(@http_uri).must_equal 'user:pass'
+      end
+      
+      it 'should parse out the paramter string' do
+        ImpURI.parameter_string(@http_uri).must_equal 'q=param1;r=param2'
+      end
+      
+      it 'should parse out the parameter as a hash' do
+        ImpURI.parameters(@http_uri).must_equal({'q' => 'param1', 'r' => 'param2'})
+      end
+      
+      it 'should return true for has_userinfo?()' do
+        ImpURI.has_userinfo?(@http_uri).must_equal true
+        ImpURI.has_credentials?(@http_uri).must_equal true
+        ImpURI.has_username_and_password?(@http_uri).must_equal true
+        ImpURI.has_user_info?(@http_uri).must_equal true
+      end
+      
+      it 'should return true for has_scheme?()' do
+        ImpURI.has_scheme?(@http_uri).must_equal true
+        ImpURI.has_protocol?(@http_uri).must_equal true
+        ImpURI.has_scheme_name?(@http_uri).must_equal true
+      end
+      
+      it 'should return false for has_colon_path_separator?()' do
+        ImpURI.has_colon_path_separator?(@http_uri).must_equal false
+        ImpURI.uses_colon_path_separator?(@http_uri).must_equal false
+      end
+      
+      it 'should return true for has_port_number?()' do
+        ImpURI.has_port_number?(@http_uri).must_equal true
+        ImpURI.has_port?(@http_uri).must_equal true
+      end
+      
+      it 'should return the request URI' do
+        ImpURI.request_uri(@http_uri).must_equal '/path/to/resource?q=param1;r=param2'
+      end
+    end # describe 'an http URI with the lot and a semicolon path separator'
     
   end # describe 'ImpURI class methods'
   

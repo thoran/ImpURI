@@ -1,4 +1,4 @@
-# Test @impuri/instance_methods
+# Test ImpURI/instance_methods
 
 # 20110725
 # 0.6.0
