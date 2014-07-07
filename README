@@ -9,7 +9,7 @@ This is a hand-written non-validating parser for URI's and ssh/scp almost URI re
 Raison d'etre
 =============
 
-I wrote for two reasons... 
+I wrote it for two reasons... 
 
 1. Ruby's standard URI library doesn't handle ssh/scp resource descriptors, which are the near-to, not quite URI, but commonly used, ssh/scp way of describing a network addressable resource: username:password@host:path.  URI's have a scheme at the start, and the path begins with only a forward slash, whereas an ssh/scp resource has no scheme, and the path begins with a colon and a slash.  I wanted to be able to handle both.  
 
