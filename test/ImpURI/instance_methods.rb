@@ -8,9 +8,11 @@ require 'ImpURI'
 require 'minitest/autorun'
 
 describe ImpURI do
-  describe 'ImpURI instance methods' do
+
+  describe 'attribute readers' do
 
     describe 'a very simple http URI' do
+
       before do
         @impuri = ImpURI.new('http://example.com')
       end
@@ -818,5 +820,86 @@ describe ImpURI do
       end
     end # describe 'an ssh identifier as per Github'
 
-  end
+  end # describe 'attribute readers'
+
+  describe 'attribute writers' do
+
+    describe 'a very simple http URI' do
+      before do
+        @impuri = ImpURI.new('http://example.com')
+      end
+
+      it 'must assign the scheme' do
+        @impuri.scheme = 'ftp'
+        @impuri.scheme.must_equal 'ftp'
+      end
+
+      it 'must assign the username' do
+        @impuri.username = 'user'
+        @impuri.username.must_equal 'user'
+      end
+
+      it 'must assign the password' do
+        @impuri.password = 'pass'
+        @impuri.password.must_equal 'pass'
+      end
+
+      it 'must assign the hostname' do
+        @impuri.hostname = 'example2.com'
+        @impuri.hostname.must_equal 'example2.com'
+      end
+
+      it 'must assign the port number' do
+        @impuri.port_number = '8080'
+        @impuri.port_number.must_equal '8080'
+      end
+
+      it 'must assign the path' do
+        @impuri.path = '/path/to/here'
+        @impuri.path.must_equal '/path/to/here'
+      end
+
+      it 'must assign the parameter string' do
+        @impuri.path = '/'
+        @impuri.parameter_string = 'a=1&b=2'
+        @impuri.parameter_string.must_equal 'a=1&b=2'
+      end
+
+      it 'must assign the parameter string and cause the parameters to be assigned also' do
+        @impuri.path = '/'
+        @impuri.parameter_string = 'a=1&b=2'
+        @impuri.parameters.must_equal({'a' => '1', 'b' => '2'})
+      end
+
+      it 'must assign the parameters and cause the parameter_sting to be assigned also' do
+        @impuri.path = '/'
+        @impuri.parameters = {'a' => '1', 'b' => '2'}
+        @impuri.parameter_string.must_equal 'a=1&b=2'
+      end
+
+      it 'must return true for has_userinfo?() after setting username and password' do
+        @impuri.username = 'user'
+        @impuri.password = 'pass'
+        @impuri.has_userinfo?.must_equal true
+      end
+
+      it 'must return true for has_port_number?() after setting the port number' do
+        @impuri.port_number = '8080'
+        @impuri.has_port_number?.must_equal true
+      end
+
+      it 'must return a URI string with all attributes which have been set' do
+        @impuri.scheme = 'ftp'
+        @impuri.username = 'user'
+        @impuri.password = 'pass'
+        @impuri.hostname = 'example2.com'
+        @impuri.port_number = '8080'
+        @impuri.path = '/path/to/here'
+        @impuri.parameter_string = 'a=1&b=2'
+        @impuri.to_s.must_equal 'ftp://user:pass@example2.com:8080/path/to/here?a=1&b=2'
+      end
+    end # describe 'a very simple http URI'
+
+  end # describe 'attribute writers'
+
 end
