@@ -33,12 +33,12 @@ describe ImpURI do
       end
 
       it 'must return nil if there is no path' do
-        ImpURI.path(@http_uri).must_equal nil
+        ImpURI.path(@http_uri).must_be_nil
       end
 
       it 'must return nil if there are no GET request parameters' do
-        ImpURI.parameter_string(@http_uri).must_equal nil
-        ImpURI.parameters(@http_uri).must_equal nil
+        ImpURI.parameter_string(@http_uri).must_be_nil
+        ImpURI.parameters(@http_uri).must_be_nil
       end
 
       it 'must return false for has_userinfo?()' do
@@ -81,7 +81,7 @@ describe ImpURI do
       end
 
       it 'must return nil if there is no request URI' do
-        ImpURI.request_uri(@http_uri).must_equal nil
+        ImpURI.request_uri(@http_uri).must_be_nil
       end
     end # describe 'a very simple http URI'
 
@@ -102,7 +102,7 @@ describe ImpURI do
       end
 
       it 'must return nil if there is no path' do
-        ImpURI.path(@http_uri).must_equal nil
+        ImpURI.path(@http_uri).must_be_nil
       end
 
       it 'must parse out the port number' do
@@ -112,8 +112,8 @@ describe ImpURI do
       end
 
       it 'must return nil if there are no GET request parameters' do
-        ImpURI.parameter_string(@http_uri).must_equal nil
-        ImpURI.parameters(@http_uri).must_equal nil
+        ImpURI.parameter_string(@http_uri).must_be_nil
+        ImpURI.parameters(@http_uri).must_be_nil
       end
 
       it 'must return false for has_userinfo?()' do
@@ -156,7 +156,7 @@ describe ImpURI do
       end
 
       it 'must return nil if there is no request URI' do
-        ImpURI.request_uri(@http_uri).must_equal nil
+        ImpURI.request_uri(@http_uri).must_be_nil
       end
     end # describe 'an http URI with a port number'
 
@@ -181,8 +181,8 @@ describe ImpURI do
       end
 
       it 'must return nil if there are no GET request parameters' do
-        ImpURI.parameter_string(@http_uri).must_equal nil
-        ImpURI.parameters(@http_uri).must_equal nil
+        ImpURI.parameter_string(@http_uri).must_be_nil
+        ImpURI.parameters(@http_uri).must_be_nil
       end
 
       it 'must return false for has_userinfo?()' do
@@ -257,8 +257,8 @@ describe ImpURI do
       end
 
       it 'must return nil if there are no GET request parameters' do
-        ImpURI.parameter_string(@http_uri).must_equal nil
-        ImpURI.parameters(@http_uri).must_equal nil
+        ImpURI.parameter_string(@http_uri).must_be_nil
+        ImpURI.parameters(@http_uri).must_be_nil
       end
 
       it 'must return true for has_userinfo?()' do
@@ -301,7 +301,7 @@ describe ImpURI do
       end
 
       it 'must return nil if there is no request URI' do
-        ImpURI.request_uri(@http_uri).must_equal nil
+        ImpURI.request_uri(@http_uri).must_be_nil
       end
     end # describe 'an http URI with a username'
 
@@ -340,8 +340,8 @@ describe ImpURI do
       end
 
       it 'must return nil if there are no GET request parameters' do
-        ImpURI.parameter_string(@http_uri).must_equal nil
-        ImpURI.parameters(@http_uri).must_equal nil
+        ImpURI.parameter_string(@http_uri).must_be_nil
+        ImpURI.parameters(@http_uri).must_be_nil
       end
 
       it 'must return true for has_userinfo?()' do
@@ -384,7 +384,7 @@ describe ImpURI do
       end
 
       it 'must return nil if there is no request URI' do
-        ImpURI.request_uri(@http_uri).must_equal nil
+        ImpURI.request_uri(@http_uri).must_be_nil
       end
     end # describe 'an http URI with a username and password'
 
