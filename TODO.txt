@@ -1,0 +1,6 @@
+1. Handle port numbers.  Done as of 0.1.0.
+2. Create strict and non-strict parsing modes, which will either accept or reject non-URI ssh/scp formatted strings if they are supplied.  Done as of 0.2.0.
+3. Doesn't handle some of the funkier URI's like: ssh:// with keys in the userinfo section, mailto: (no ://, but merely :), and ldap://.
+4. Consider encoding everything in the URI before breaking down the strings, so as to avoid the kind of complexity introduced in ImpURI.has_userinfo?().
+5. Be able to change the semicolon parameter separator for an ImpURI instance.
+6. Be able to change the colon path separator for an ImpURI instance, say if converting from ssh-form to the URI-form of an ssh resource for instance.  Any other uses?

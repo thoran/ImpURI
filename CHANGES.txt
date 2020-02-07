@@ -1,0 +1,43 @@
+0.7.0: Enable assignment of values to component parts
+
+1. + #scheme=.
+2. + #username=.
+3. + #password=.
+4. + #hostname=.
+5. + #port_number=.
+6. + #path=.
+7. + #parameter_string=.
+8. + #parameters=.
+9. + #request_uri=.
+10. + require 'Hash/x_www_form_urlencode'.
+11. ~ self.has_username?, so that it works more correctly.
+12. ~ #scheme_with_separator, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+13. ~ #userinfo, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+14. ~ #userinfo_with_separator, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+15. ~ #hostname_optionally_with_port_number, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+16. ~ #hostname_and_path, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+17. ~ #hostname_and_port_number, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+18. ~ #all_but_scheme, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+19. ~ #to_s, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+20. ~ #to_h, so that it includes parameter_string.
+21. ~ #to_s, so that it makes use of #all_but_scheme, and includes parameter_string.
+22. + alias_methods for #has_semicolon_parameter_separator?.
+23. + alias #ssh? for #is_ssh?.
+24. ~ #has_scheme?, so that it tests the local component value, rather than using the corresponding class method.
+25. ~ #has_port_number?, so that it tests the local component value, rather than using the corresponding class method.
+26. ~ #has_parameters?, so that it tests the local component value, rather than using the corresponding class method.
+27. + #has_username?.
+28. + #has_password?.
+29. + #has_hostname?.
+30. + #has_path?.
+31. + #has_parameter_string?.
+32. + #hostname_optionally_with_port_number, for use in #all_but_scheme.
+
+0.8.0: Preparation for release as a gem
+
+1. Moved the contents of lib/ImpURI.rbd/ImpURI.rb into lib/ImpURI.rb and changed the directory name from lib/ImpURI.rbd to lib/ImpURI, so that it has a more conventional structure and while the .rbd stuff doesn't work!
+2. /must_equal nil/must_be_nil/ in tests, due to Mintest 6 deprecation messages.
+3. Changes comments moved from lib/ImpURI.rb --> CHANGES.txt. (ie. This file!)
+4. /README/README.md/
+5. + lib/ImpURI/VERSION.rb
+6. + ImpURI.gemspec, so this is now a gem.  Finally!
