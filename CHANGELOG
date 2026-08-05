@@ -2,6 +2,12 @@
 
 ## 20260805
 
+0.11.0: Name the entry point and the gemspec for the gem.
+
+1. lib/: /ImpURI.rb/impuri.rb/, so the require becomes require 'impuri' rather than require 'ImpURI'. This is the breaking change: anything using the gem must be altered. It resolves either way here, the volume being case insensitive, but not on Linux. namo, webdav and statistics.rb all name the entry point for the gem and keep the namespace directory in CamelCase, so lib/ImpURI/ is left as it is.
+2. /ImpURI.gemspec/impuri.gemspec/, and the spec.files entry with it. Invisible to anyone installing the gem, since nothing requires a gemspec.
+3. ~ tests: require 'ImpURI' --> require 'impuri'.
+
 0.10.1: Use let rather than instance variables set in a before block.
 
 1. ~ tests: before do @impuri = ... end --> let(:impuri){...}, for 25 blocks and 847 references across the two files. Nothing in lib changes, so this is a patch.
@@ -12,6 +18,7 @@
 1. ~ tests: x.must_equal y --> _(x).must_equal y, across all 801 assertions in the two test files. The global form was Minitest reopening Object so that every object answered must_equal, which it has since removed. Minitest's own documentation prefers the wrapped form, because it carries the test context rather than reaching for a thread-local to find it.
 2. - ImpURI.gemspec: the development dependency upon minitest-global_expectations, which was added in 0.9.0 only to keep the tests running while they were in the old form.
 3. ~ tests: require 'minitest/global_expectations/autorun' --> require 'minitest/autorun'.
+
 
 ## 20260805
 
@@ -36,6 +43,7 @@
 17. + ImpURI.gemspec: development dependencies upon minitest and minitest-global_expectations, and the Gem::Specification#development_dependencies= helper to declare them.
 18. ~ tests: require 'minitest/autorun' --> require 'minitest/global_expectations/autorun'. The tests are written in the global expectations style, as in `ImpURI.username(x).must_equal 'git'`, which Minitest has since removed, so every one of the 271 of them errored and not one of the 801 assertions ran. The shim restores that style without touching the tests; rewriting them to the `_(x).must_equal` form, and dropping the dependency again, is for 0.10.0.
 19. ~ ImpURI::VERSION: /0.8.0/0.9.0/
+
 
 ## 20200207
 

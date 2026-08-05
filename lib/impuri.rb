@@ -1,4 +1,4 @@
-# ImpURI.rb
+# impuri.rb
 # ImpURI
 
 require_relative './_meta/blankQ'

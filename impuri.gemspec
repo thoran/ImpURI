@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.files = [
-    'ImpURI.gemspec',
+    'impuri.gemspec',
     'CHANGELOG',
     'Gemfile',
     'README.md',
