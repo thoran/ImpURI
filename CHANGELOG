@@ -2,6 +2,11 @@
 
 ## 20260805
 
+0.10.1: Use let rather than instance variables set in a before block.
+
+1. ~ tests: before do @impuri = ... end --> let(:impuri){...}, for 25 blocks and 847 references across the two files. Nothing in lib changes, so this is a patch.
+2. Only the three names actually used were substituted, since the string literals hold http://user@example.com/ and git@github.com:thoran/ImpURI.git, and a general @word replacement would have rewritten those too.
+
 0.10.0: Move the tests onto the expectation form Minitest supports
 
 1. ~ tests: x.must_equal y --> _(x).must_equal y, across all 801 assertions in the two test files. The global form was Minitest reopening Object so that every object answered must_equal, which it has since removed. Minitest's own documentation prefers the wrapped form, because it carries the test context rather than reaching for a thread-local to find it.
@@ -10,7 +15,7 @@
 
 ## 20260805
 
-0.9.0: Make the gem loadable on its own, rather than only where the helper files were already on the load path
+0.9.0: Make the gem loadable on its own, rather than only where the helper files were already on the load path.
 
 1. Moved the vendored helpers from lib/ImpURI/ up into lib/, so that they sit where they are required from. 0.8.0 shipped all seventeen of them, but one directory too deep: only lib/ goes onto the load path, so require '_meta/blankQ' looked for lib/_meta/blankQ.rb while the file sat at lib/ImpURI/_meta/blankQ.rb. The gem could therefore only be loaded on a machine which already had those helpers elsewhere on the load path, which is to say mine.
 2. + lib/Thoran/String/Urlencode/urlencode.rb and lib/Thoran/Hash/XWwwFormUrlencode/x_www_form_urlencode.rb, which had never been vendored at all. 0.8.0 required String/url_encode by way of Hash/x_www_form_urlencode.rb and shipped no such file, so that require was answered by whatever the machine happened to have: my own library, or any installed gem which vendored a file at that path. Both taken from http.rb 1.3.1, which carries the current implementation.
@@ -34,7 +39,7 @@
 
 ## 20200207
 
-0.8.0: Preparation for release as a gem
+0.8.0: Preparation for release as a gem.
 
 1. Moved the contents of lib/ImpURI.rbd/ImpURI.rb into lib/ImpURI.rb and changed the directory name from lib/ImpURI.rbd to lib/ImpURI, so that it has a more conventional structure and while the .rbd stuff doesn't work!
 2. /must_equal nil/must_be_nil/ in tests, due to Mintest 6 deprecation messages.
@@ -46,7 +51,7 @@
 
 ## 20140707
 
-0.7.0: Enable assignment of values to component parts
+0.7.0: Enable assignment of values to component parts.
 
 1. + #scheme=.
 2. + #username=.
