@@ -32,7 +32,6 @@ Gem::Specification.new do |spec|
   ].flatten
 
   spec.development_dependencies = [
-    ['minitest', '~> 6.0'],
-    ['minitest-global_expectations', '~> 1.0']
+    ['minitest', '~> 6.0']
   ]
 end
