@@ -5,7 +5,7 @@ gem 'minitest'
 $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib')))
 
 require 'ImpURI'
-require 'minitest/autorun'
+require 'minitest/global_expectations/autorun'
 
 describe ImpURI do
 

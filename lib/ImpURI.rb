@@ -1,21 +1,14 @@
 # ImpURI.rb
 # ImpURI
 
-# 20200207
-# 0.8.0
+require_relative './_meta/blankQ'
+require_relative './Array/all_but_first'
+require_relative './Array/all_but_last'
+require_relative './Array/extract_optionsX'
+require_relative './Hash/x_www_form_urlencode'
+require_relative './Module/alias_methods'
 
-# Description: A cleaner and simpler URI and ssh/scp resource parser for Ruby.  Though I'm not sure about the simpler bit anymore.  It's now over 500 lines you know!
-
-$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib')))
-
-require '_meta/blankQ'
-require 'Array/all_but_first'
-require 'Array/all_but_last'
-require 'Array/extract_optionsX'
-require 'Hash/x_www_form_urlencode'
-require 'Module/alias_methods'
-
-require 'ImpURI/VERSION'
+require_relative './ImpURI/VERSION'
 
 class ImpURI
 

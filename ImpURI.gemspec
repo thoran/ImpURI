@@ -1,17 +1,38 @@
+require_relative './lib/ImpURI/VERSION'
+
+class Gem::Specification
+  def development_dependencies=(gems)
+    gems.each{|gem| add_development_dependency(*gem)}
+  end
+end
+
 Gem::Specification.new do |spec|
   spec.name = 'impuri'
-  spec.version = '0.8.0'
-  spec.date = '2020-02-07'
+  spec.version = ImpURI::VERSION
 
-  spec.summary = "A cleaner and simpler URI and ssh/scp resource parser for Ruby."
-  spec.description = "A cleaner and simpler URI and ssh/scp resource parser for Ruby.  Though I'm not sure about the simpler bit anymore.  It's now over 500 lines you know!"
+  spec.summary = "This is a hand-written non-validating parser for URI's and ssh/scp almost URI resource descriptors."
+  spec.description = "This is a hand-written non-validating parser for URI's and ssh/scp almost URI resource descriptors, which is intended to be cleaner and simpler than Ruby's standard URI."
 
   spec.author = 'thoran'
   spec.email = 'code@thoran.com'
-  spec.homepage = 'http://github.com/thoran/ImpURI'
+  spec.homepage = 'https://github.com/thoran/ImpURI'
   spec.license = 'MIT'
 
-  spec.files = Dir['lib/**/*.rb']
-  spec.has_rdoc = false
-  spec.required_ruby_version = '>= 1.8.6'
+  spec.required_ruby_version = '>= 2.7'
+  spec.require_paths = ['lib']
+
+  spec.files = [
+    'ImpURI.gemspec',
+    'CHANGELOG',
+    'Gemfile',
+    'README.md',
+    'TODO.txt',
+    Dir['lib/**/*.rb'],
+    Dir['test/**/*.rb']
+  ].flatten
+
+  spec.development_dependencies = [
+    ['minitest', '~> 6.0'],
+    ['minitest-global_expectations', '~> 1.0']
+  ]
 end

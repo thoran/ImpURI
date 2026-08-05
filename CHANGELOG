@@ -1,0 +1,74 @@
+# CHANGELOG
+
+## 20260805
+
+0.9.0: Make the gem loadable on its own, rather than only where the helper files were already on the load path
+
+1. Moved the vendored helpers from lib/ImpURI/ up into lib/, so that they sit where they are required from. 0.8.0 shipped all seventeen of them, but one directory too deep: only lib/ goes onto the load path, so require '_meta/blankQ' looked for lib/_meta/blankQ.rb while the file sat at lib/ImpURI/_meta/blankQ.rb. The gem could therefore only be loaded on a machine which already had those helpers elsewhere on the load path, which is to say mine.
+2. + lib/Thoran/String/Urlencode/urlencode.rb and lib/Thoran/Hash/XWwwFormUrlencode/x_www_form_urlencode.rb, which had never been vendored at all. 0.8.0 required String/url_encode by way of Hash/x_www_form_urlencode.rb and shipped no such file, so that require was answered by whatever the machine happened to have: my own library, or any installed gem which vendored a file at that path. Both taken from http.rb 1.3.1, which carries the current implementation.
+3. ~ lib/Hash/x_www_form_urlencode.rb: the 2013 implementation replaced by the shim which requires the namespaced one. The old one called url_encode and then gsub'd spaces to plus signs, which url_encode had already done; the replacement drops that, and encodes identically.
+4. ~ lib/ImpURI.rb: require --> require_relative for the helpers and for VERSION, so that loading no longer depends upon the load path at all. lib/ImpURI.rb keeps its name, so `require 'ImpURI'` is unchanged and nothing which already uses the gem need be touched.
+5. - lib/ImpURI.rb: $LOAD_PATH.unshift, which was there to make the plain requires work and never could, since it added lib/ while the files were under lib/ImpURI/.
+6. - lib/ImpURI.rb: the date, version and description comments, the version now being kept only in lib/ImpURI/VERSION.rb.
+7. ~ ImpURI.gemspec: spec.version now reads ImpURI::VERSION, so that the version is declared in one place.
+8. - ImpURI.gemspec: spec.has_rdoc, which RubyGems has removed, and which aborted `gem build` outright.
+9. - ImpURI.gemspec: spec.date, which was stamped 2020-02-07 and is better left for the build to set.
+10. ~ ImpURI.gemspec: spec.required_ruby_version, 1.8.6 --> 2.7.
+11. ~ ImpURI.gemspec: spec.description shortened, and spec.homepage http --> https.
+12. ~ ImpURI.gemspec: spec.files now lists the gemspec, CHANGELOG, README.md and TODO.txt alongside lib and test, rather than lib alone, and + spec.require_paths, so as this matches the other gems. The tests now ship, and so can be run from the unpacked gem.
+13. + Gemfile, so as the development dependencies declared above are acted upon rather than merely stated. Without one nothing reads them, and a plain ruby lets any of the installed gems answer a require: RubyGems indexes every installed gem by the paths it provides, and activates whichever one answers. Under bundle exec only the resolved bundle is visible, which is how a require this does not declare fails here rather than for whoever installs it. Had this been developed so, the missing String/url_encode would have raised in 2020 instead of being answered by an unrelated gem.
+14. /CHANGES.txt/CHANGELOG/, and the entries reordered so as the most recent comes first.
+15. ~ .gitignore, filled out for Ruby.
+16. ~ README.md: trailing whitespace removed.
+17. + ImpURI.gemspec: development dependencies upon minitest and minitest-global_expectations, and the Gem::Specification#development_dependencies= helper to declare them.
+18. ~ tests: require 'minitest/autorun' --> require 'minitest/global_expectations/autorun'. The tests are written in the global expectations style, as in `ImpURI.username(x).must_equal 'git'`, which Minitest has since removed, so every one of the 271 of them errored and not one of the 801 assertions ran. The shim restores that style without touching the tests; rewriting them to the `_(x).must_equal` form, and dropping the dependency again, is for 0.10.0.
+19. ~ ImpURI::VERSION: /0.8.0/0.9.0/
+
+## 20200207
+
+0.8.0: Preparation for release as a gem
+
+1. Moved the contents of lib/ImpURI.rbd/ImpURI.rb into lib/ImpURI.rb and changed the directory name from lib/ImpURI.rbd to lib/ImpURI, so that it has a more conventional structure and while the .rbd stuff doesn't work!
+2. /must_equal nil/must_be_nil/ in tests, due to Mintest 6 deprecation messages.
+3. Changes comments moved from lib/ImpURI.rb --> CHANGES.txt. (ie. This file!)
+4. /README/README.md/
+5. + lib/ImpURI/VERSION.rb
+6. + ImpURI.gemspec, so this is now a gem.  Finally!
+
+
+## 20140707
+
+0.7.0: Enable assignment of values to component parts
+
+1. + #scheme=.
+2. + #username=.
+3. + #password=.
+4. + #hostname=.
+5. + #port_number=.
+6. + #path=.
+7. + #parameter_string=.
+8. + #parameters=.
+9. + #request_uri=.
+10. + require 'Hash/x_www_form_urlencode'.
+11. ~ self.has_username?, so that it works more correctly.
+12. ~ #scheme_with_separator, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+13. ~ #userinfo, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+14. ~ #userinfo_with_separator, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+15. ~ #hostname_optionally_with_port_number, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+16. ~ #hostname_and_path, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+17. ~ #hostname_and_port_number, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+18. ~ #all_but_scheme, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+19. ~ #to_s, so that it is defined in terms of it's component parts, rather than making use of the class methods.
+20. ~ #to_h, so that it includes parameter_string.
+21. ~ #to_s, so that it makes use of #all_but_scheme, and includes parameter_string.
+22. + alias_methods for #has_semicolon_parameter_separator?.
+23. + alias #ssh? for #is_ssh?.
+24. ~ #has_scheme?, so that it tests the local component value, rather than using the corresponding class method.
+25. ~ #has_port_number?, so that it tests the local component value, rather than using the corresponding class method.
+26. ~ #has_parameters?, so that it tests the local component value, rather than using the corresponding class method.
+27. + #has_username?.
+28. + #has_password?.
+29. + #has_hostname?.
+30. + #has_path?.
+31. + #has_parameter_string?.
+32. + #hostname_optionally_with_port_number, for use in #all_but_scheme.
