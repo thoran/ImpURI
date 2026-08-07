@@ -8,11 +8,8 @@ require 'impuri'
 require 'minitest/autorun'
 
 describe ImpURI do
-
   describe 'attribute readers' do
-
     describe 'a very simple http URI' do
-
       let(:impuri){ImpURI.new('http://example.com')}
 
       it 'must parse out the scheme' do
@@ -795,11 +792,9 @@ describe ImpURI do
         _(impuri.path).must_equal 'thoran/ImpURI.git'
       end
     end # describe 'an ssh identifier as per Github'
-
   end # describe 'attribute readers'
 
   describe 'attribute writers' do
-
     describe 'a very simple http URI' do
       let(:impuri){ImpURI.new('http://example.com')}
 
@@ -873,7 +868,75 @@ describe ImpURI do
         _(impuri.to_s).must_equal 'ftp://user:pass@example2.com:8080/path/to/here?a=1&b=2'
       end
     end # describe 'a very simple http URI'
-
   end # describe 'attribute writers'
 
+  describe '#to_ssh' do
+    describe 'a URI-style identifier' do
+      let(:impuri){ImpURI.new('github.com/thoran/lineage')}
+
+      # The slash stood between the hostname and the path rather than anchoring
+      # the path, and after a colon it would say the path began at the root.
+      it 'must not carry the separating slash into the path' do
+        _(impuri.to_ssh).must_equal 'github.com:thoran/lineage'
+      end
+    end # describe 'a URI-style identifier'
+
+    describe 'a URI-style identifier with a scheme' do
+      let(:impuri){ImpURI.new('https://github.com/thoran/lineage')}
+
+      it 'must leave the scheme out, there being no place for one' do
+        _(impuri.to_ssh).must_equal 'github.com:thoran/lineage'
+      end
+    end # describe 'a URI-style identifier with a scheme'
+
+    describe 'an ssh identifier with a path from the login directory' do
+      let(:impuri){ImpURI.new('git@github.com:thoran/lineage.git')}
+
+      it 'must return what it was given' do
+        _(impuri.to_ssh).must_equal 'git@github.com:thoran/lineage.git'
+      end
+    end # describe 'an ssh identifier with a path from the login directory'
+
+    describe 'an ssh identifier with a path from the root' do
+      let(:impuri){ImpURI.new('user@host.com:/srv/git/thing.git')}
+
+      it 'must keep the leading slash, that being the whole of the difference' do
+        _(impuri.to_ssh).must_equal 'user@host.com:/srv/git/thing.git'
+      end
+    end # describe 'an ssh identifier with a path from the root'
+
+    describe 'an identifier with a password' do
+      let(:impuri){ImpURI.new('user:pass@host.com:/srv/git/thing.git')}
+
+      it 'must render the username alone, ssh having no use for a password here' do
+        _(impuri.to_ssh).must_equal 'user@host.com:/srv/git/thing.git'
+      end
+    end # describe 'an identifier with a password'
+
+    describe 'an identifier with a port number' do
+      let(:impuri){ImpURI.new('http://example.com:8080/a/b')}
+
+      it 'must drop the port number, this form having nowhere to put one' do
+        _(impuri.to_ssh).must_equal 'example.com:a/b'
+      end
+    end # describe 'an identifier with a port number'
+
+    describe 'an identifier with no path' do
+      let(:impuri){ImpURI.new('example.com')}
+
+      it 'must return the hostname and a colon, being the login directory' do
+        _(impuri.to_ssh).must_equal 'example.com:'
+      end
+    end # describe 'an identifier with no path'
+  end # describe '#to_ssh'
+
+  describe '#username_with_separator' do
+    it 'must return the username and an at sign where there is one' do
+      _(ImpURI.new('git@github.com:thoran/lineage.git').username_with_separator).must_equal 'git@'
+    end
+
+    it 'must return an empty string where there is none' do
+      _(ImpURI.new('github.com/thoran/lineage').username_with_separator).must_equal ''
+    end
+  end # describe '#username_with_separator'
 end

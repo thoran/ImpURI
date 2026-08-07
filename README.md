@@ -60,6 +60,28 @@ impuri.parameters
 # => {'q' => 'param'}
 ```
 
+### Rendering
+
+```ruby
+impuri.to_s
+# => the string it was given back again
+
+ImpURI.new('github.com/thoran/lineage').to_ssh
+# => 'github.com:thoran/lineage'
+
+ImpURI.new('git@github.com:thoran/lineage.git').to_ssh
+# => 'git@github.com:thoran/lineage.git'
+
+ImpURI.new('user@host.com:/srv/git/thing.git').to_ssh
+# => 'user@host.com:/srv/git/thing.git'
+```
+
+`#to_ssh` renders the same resource as an ssh/scp descriptor, `[username@]hostname:path`.
+
+Where the path arrived after a colon it is left as it stands, since a leading slash there is the difference between a path from the root and one from the login directory, and an ssh descriptor is returned unchanged.  Where the path arrived after a slash, that slash separated it from the hostname rather than anchoring it, and so is not carried into a form where it would say the other thing.
+
+A scheme, a port number and a password are all dropped, this form having no place for any of them.
+
 ## Contributing
 
 1. Fork it ( https://github.com/thoran/impuri/fork )

@@ -432,6 +432,20 @@ class ImpURI
     end
   end
 
+  def username_with_separator
+    has_username? ? "#{username}@" : ''
+  end
+
+  # A path which arrived after a colon is left as it stands, a leading slash there being the difference between a path from the root and one from the login directory.  A path which arrived after a slash was separated from the hostname by it rather than anchored by it, and so it is not carried into a form where it would mean the other thing.
+  def ssh_path
+    has_colon_path_separator? ? path : path.to_s.sub(%r{\A/}, '')
+  end
+
+  # The same resource as an ssh/scp descriptor, being [username@]hostname:path.  A port number has no place in this form and is dropped, as is a password, ssh having no use for one here.
+  def to_ssh
+    "#{username_with_separator}#{hostname}:#{ssh_path}"
+  end
+
   def to_h
     {scheme: scheme, username: username, password: password, hostname: hostname, port_number: port_number, path: path, parameter_string: parameter_string}
   end

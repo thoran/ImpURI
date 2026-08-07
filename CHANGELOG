@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 20260808
+
+0.12.0: + ImpURI#to_ssh, for going the other way.
+
+1. + ImpURI#to_ssh: the same resource as an ssh/scp descriptor, being [username@]hostname:path. Parsing both forms was the point of this from the start, and there was a renderer for neither of them beyond to_s giving back what it was handed.
+2. + The two paths are not the same kind of path, which is the whole of what makes this worth a method rather than a string interpolation. After a colon, a leading slash is the difference between a path from the root and one from the login directory, so a descriptor which arrived that way is returned exactly as it came. After a slash, that slash stood between the hostname and the path rather than anchoring it, so it is not carried into a form where it would say the other thing: github.com/thoran/lineage gives github.com:thoran/lineage and not github.com:/thoran/lineage.
+3. + has_colon_path_separator? is what tells the two apart, and it was already here.
+4. + ImpURI#username_with_separator, alongside the userinfo_with_separator and credentials_with_separator which were already here. to_ssh renders the username alone: ssh has no use for a password in this position, and a port number has nowhere to go in this form either, so both are dropped along with the scheme.
+5. + Nine tests over both directions, the password, the port number, and a descriptor with no path at all, which gives hostname and a colon, that being the login directory.
+6. Written for git-boot, which had been interpolating "#{username}@#{hostname}:#{path}" and getting git@github.com:/thoran/lineage for its trouble: a URI path spliced into a position where the leading slash means something else. That is a fault in the caller and not here, but a library which parses both forms may as well render both.
+
 ## 20260805
 
 0.11.0: Name the entry point and the gemspec for the gem.
