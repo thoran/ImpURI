@@ -1,3 +1,5 @@
+# impuri.gemspec
+
 require_relative './lib/ImpURI/VERSION'
 
 class Gem::Specification
@@ -18,20 +20,27 @@ Gem::Specification.new do |spec|
   spec.homepage = 'https://github.com/thoran/ImpURI'
   spec.license = 'MIT'
 
+  spec.metadata = {
+    'bug_tracker_uri' => 'https://github.com/thoran/ImpURI/issues',
+    'changelog_uri' => 'https://github.com/thoran/ImpURI/blob/master/CHANGELOG',
+    'source_code_uri' => 'https://github.com/thoran/ImpURI',
+    'documentation_uri' => 'https://github.com/thoran/ImpURI/blob/master/README.md',
+  }
+
   spec.required_ruby_version = '>= 2.7'
   spec.require_paths = ['lib']
 
   spec.files = [
-    'impuri.gemspec',
+    Dir['lib/**/*.rb'],
+    Dir['test/**/*.rb'],
     'CHANGELOG',
     'Gemfile',
+    'impuri.gemspec',
     'README.md',
     'TODO.txt',
-    Dir['lib/**/*.rb'],
-    Dir['test/**/*.rb']
   ].flatten
 
   spec.development_dependencies = [
-    ['minitest', '~> 6.0']
+    ['minitest', '~> 6.0'],
   ]
 end

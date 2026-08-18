@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 20260819
+
+0.12.1: Tidy the gemspec, fill in its metadata, and guard both with a test.
+
+1. ~ impuri.gemspec: + a header comment naming the file, as every other file here carries, and + trailing commas to the last element of spec.files and spec.development_dependencies, so that adding to either touches one line rather than two. ~ spec.files reordered, the globs first and the loose files alphabetically after them, as moby and measurand have it. The globs are what the gem is and the rest is paperwork, so adding paperwork now never disturbs them. This repo had followed namo and http, which pin the gemspec first and put the globs last.
+2. ~ impuri.gemspec: + spec.metadata, being bug_tracker_uri, changelog_uri, source_code_uri and documentation_uri, as moby carries. These are the links rubygems shows beside the gem, and with none declared the page offers the homepage alone. The blob URLs name master, this repository's default branch, where moby's name main.
+3. + test/gemspec_test.rb: that the specification validates, that it pins no date, that its version is ImpURI::VERSION rather than a literal, that the four metadata keys are declared and that no blob link names a branch other than master, that it declares no runtime dependencies, and which development dependencies it declares. A link to a branch which does not exist is worse than no link, reading as a broken page rather than an absent one, and nothing else here would catch a rename. Modelled on moby's, which is where this pair of tests was settled.
+4. ~ test/ImpURI.rb: + require 'gemspec_test', the loader naming each test file by hand.
+5. ~ ImpURI::VERSION: /0.12.0/0.12.1/
+
+
 ## 20260808
 
 0.12.0: + ImpURI#to_ssh, for going the other way.
