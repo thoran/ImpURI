@@ -2,6 +2,16 @@
 
 ## 20260819
 
+0.12.3: Bring the tests up to standard: a Rakefile, *_test.rb naming, and a test helper.
+
+1. + Rakefile: Rake::TestTask over FileList['test/**/*_test.rb'], with default: :test, a :spec alias and a :version task. Modelled on moby's. Every other gem here is run with rake and this one had no Rakefile at all, the suite being run by hand through a loader.
+2. ~ test/ImpURI/class_methods.rb --> test/ImpURI/class_methods_test.rb, and instance_methods.rb likewise, so that the runner finds them by pattern rather than by a loader naming each one.
+3. + test/test_helper.rb: minitest/autorun and the library. Each test file had been repeating gem 'minitest', a $LOAD_PATH.unshift and two requires; they now require the helper alone.
+4. - test/ImpURI.rb: the hand-written loader. It named each test file, so a new test had to be registered in two places, and both tests added at 0.12.1 and 0.12.2 needed a line there. FileList does that now.
+5. ~ impuri.gemspec: + 'Rakefile' to spec.files and + rake to spec.development_dependencies, both following from the above.
+6. ~ test/gemspec_test.rb: + rake to the expected development dependencies, that assertion being exact.
+7. ~ ImpURI::VERSION: /0.12.2/0.12.3/
+
 0.12.2: Adopt the CHANGELOG-matching version test.
 
 1. + test/ImpURI/VERSION_test.rb: that ImpURI::VERSION is a String, that it is three numbers separated by dots, and that it matches the newest entry in the CHANGELOG. The last is the one with teeth — a release which moves the constant and forgets the CHANGELOG, or the reverse, fails here rather than shipping — and it was verified by pointing it at a stale constant, which it caught. Modelled on moby's, which is where this pair was settled.

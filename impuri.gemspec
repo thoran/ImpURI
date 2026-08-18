@@ -36,11 +36,13 @@ Gem::Specification.new do |spec|
     'CHANGELOG',
     'Gemfile',
     'impuri.gemspec',
+    'Rakefile',
     'README.md',
     'TODO.txt',
   ].flatten
 
   spec.development_dependencies = [
     ['minitest', '~> 6.0'],
+    ['rake'],
   ]
 end

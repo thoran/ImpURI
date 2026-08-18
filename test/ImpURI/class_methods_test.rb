@@ -1,11 +1,6 @@
-# test/ImpURI/class_methods.rb
+# test/ImpURI/class_methods_test.rb
 
-gem 'minitest'
-
-$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib')))
-
-require 'impuri'
-require 'minitest/autorun'
+require_relative '../test_helper'
 
 describe ImpURI do
   describe 'ImpURI class methods' do

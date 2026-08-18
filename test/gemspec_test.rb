@@ -1,11 +1,6 @@
 # test/gemspec_test.rb
 
-gem 'minitest'
-
-$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib')))
-
-require 'impuri'
-require 'minitest/autorun'
+require_relative './test_helper'
 
 describe 'impuri.gemspec' do
   let(:spec){Gem::Specification.load(File.expand_path('../impuri.gemspec', __dir__))}
@@ -37,6 +32,6 @@ describe 'impuri.gemspec' do
   end
 
   it "declares its development dependencies" do
-    _(spec.development_dependencies.map(&:name).sort).must_equal(%w{minitest})
+    _(spec.development_dependencies.map(&:name).sort).must_equal(%w{minitest rake})
   end
 end
