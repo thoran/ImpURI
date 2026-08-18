@@ -8,3 +8,4 @@ $LOAD_PATH.unshift(test_dir) unless $LOAD_PATH.include?(test_dir)
 require 'ImpURI/class_methods'
 require 'ImpURI/instance_methods'
 require 'gemspec_test'
+require 'ImpURI/VERSION_test'

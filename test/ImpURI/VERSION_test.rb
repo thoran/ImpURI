@@ -1,0 +1,25 @@
+# test/ImpURI/VERSION_test.rb
+
+gem 'minitest'
+
+$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib')))
+
+require 'impuri'
+require 'minitest/autorun'
+
+describe ImpURI do
+  describe "VERSION" do
+    it "is a string" do
+      _(ImpURI::VERSION).must_be_instance_of String
+    end
+
+    it "is three numbers separated by dots" do
+      _(ImpURI::VERSION).must_match(/\A\d+\.\d+\.\d+\z/)
+    end
+
+    it "matches the newest entry in the CHANGELOG" do
+      changelog = File.read(File.expand_path('../../CHANGELOG', __dir__))
+      _(changelog[/^(\d+\.\d+\.\d+):/, 1]).must_equal ImpURI::VERSION
+    end
+  end
+end
