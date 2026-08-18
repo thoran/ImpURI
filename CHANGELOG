@@ -2,6 +2,13 @@
 
 ## 20260819
 
+0.12.4: + LICENSE, which the gemspec had claimed since 0.8.0 without one being present.
+
+1. + LICENSE: the MIT text, copyright 2011-2026, the repository's first commit being from 2011. spec.license = 'MIT' has been declared since the gemspec was written, so rubygems has shown a licence for this gem that the repository did not carry and the built gem did not contain. Anyone taking the gem at its word had nothing to read.
+2. ~ impuri.gemspec: + 'LICENSE' to spec.files, without which the file would sit in the repository and still not ship.
+3. ~ CHANGELOG: 20260805 carried two headings, the first holding 0.11.0, 0.10.1 and 0.10.0 and the second 0.9.0 alone, so one day's work read as two. Merged, with no entry moved, reworded or renumbered. Recorded here rather than released on its own: nobody needs telling that a duplicate heading went.
+4. ~ ImpURI::VERSION: /0.12.3/0.12.4/
+
 0.12.3: Bring the tests up to standard: a Rakefile, *_test.rb naming, and a test helper.
 
 1. + Rakefile: Rake::TestTask over FileList['test/**/*_test.rb'], with default: :test, a :spec alias and a :version task. Modelled on moby's. Every other gem here is run with rake and this one had no Rakefile at all, the suite being run by hand through a loader.
@@ -38,6 +45,7 @@
 5. + Nine tests over both directions, the password, the port number, and a descriptor with no path at all, which gives hostname and a colon, that being the login directory.
 6. Written for git-boot, which had been interpolating "#{username}@#{hostname}:#{path}" and getting git@github.com:/thoran/lineage for its trouble: a URI path spliced into a position where the leading slash means something else. That is a fault in the caller and not here, but a library which parses both forms may as well render both.
 
+
 ## 20260805
 
 0.11.0: Name the entry point and the gemspec for the gem.
@@ -56,9 +64,6 @@
 1. ~ tests: x.must_equal y --> _(x).must_equal y, across all 801 assertions in the two test files. The global form was Minitest reopening Object so that every object answered must_equal, which it has since removed. Minitest's own documentation prefers the wrapped form, because it carries the test context rather than reaching for a thread-local to find it.
 2. - ImpURI.gemspec: the development dependency upon minitest-global_expectations, which was added in 0.9.0 only to keep the tests running while they were in the old form.
 3. ~ tests: require 'minitest/global_expectations/autorun' --> require 'minitest/autorun'.
-
-
-## 20260805
 
 0.9.0: Make the gem loadable on its own, rather than only where the helper files were already on the load path.
 

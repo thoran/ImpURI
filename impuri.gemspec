@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
     'CHANGELOG',
     'Gemfile',
     'impuri.gemspec',
+    'LICENSE',
     'Rakefile',
     'README.md',
     'TODO.txt',
