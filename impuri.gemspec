@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
     'LICENSE',
     'Rakefile',
     'README.md',
+    'ROADMAP.md',
     'TODO.txt',
   ].flatten
 

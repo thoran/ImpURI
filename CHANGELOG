@@ -2,6 +2,14 @@
 
 ## 20260819
 
+0.12.5: + ROADMAP.md, for the two TODO items which are questions rather than work.
+
+1. + ROADMAP.md: encoding before breaking the string down, and whether the path separator should be settable. Neither is a job. The first names a cost in the present design and proposes a different one which might avoid it, so nothing can be done until the trade is judged worth making. The second ends "Any other uses?", which asks whether to do it at all rather than planning to.
+2. ~ TODO.txt: - those two, renumbered, leaving the funkier URIs and the parameter separator, which are work and can be done without anything first being decided. It stays a plain numbered list in a .txt: a list of jobs wants no headings and no markdown, and the two questions were the only things in it which did.
+3. + ROADMAP.md: under the path separator question, that 0.12.0's #to_ssh already serves the one use ever named for it, choosing the separator from what was parsed rather than from the caller. That is the argument for leaving it a question: the case which motivated it is met, and no second case has appeared.
+4. ~ impuri.gemspec: + 'ROADMAP.md' to spec.files, TODO.txt having shipped since 0.9.0. The two are the same kind of document and there is no reason for one to ship and not the other. switches keeps its ROADMAP.md out of its gem, which is the other consistent answer; this one follows what impuri already did.
+5. ~ ImpURI::VERSION: /0.12.4/0.12.5/
+
 0.12.4: + LICENSE, which the gemspec had claimed since 0.8.0 without one being present.
 
 1. + LICENSE: the MIT text, copyright 2011-2026, the repository's first commit being from 2011. spec.license = 'MIT' has been declared since the gemspec was written, so rubygems has shown a licence for this gem that the repository did not carry and the built gem did not contain. Anyone taking the gem at its word had nothing to read.
